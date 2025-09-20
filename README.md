@@ -2,7 +2,7 @@
 
 A real-time voice recognition system with web interface that converts speech to text using Google Speech Recognition API.
 
-## 🎉 Features
+##  Features
 
 - **Real-time speech transcription** - Immediate speech-to-text conversion
 - **Web interface** - Easy-to-use browser-based interface  
@@ -11,7 +11,7 @@ A real-time voice recognition system with web interface that converts speech to 
 - **WebSocket communication** - Real-time data streaming
 - **No complex dependencies** - Simple setup and reliable operation
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -56,7 +56,7 @@ A real-time voice recognition system with web interface that converts speech to 
    - Speak normally - your speech will be transcribed in real-time!
    - Click "Stop Listening" when done
 
-## 🧪 Testing
+##  Testing
 
 ### Test Voice Recognition
 ```bash
@@ -73,7 +73,7 @@ python check_dependencies.py
 python minimal_connection_test.py
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 ai-voice-agent/
@@ -87,7 +87,7 @@ ai-voice-agent/
 └── tests/                      # Test files
 ```
 
-## 🔧 How It Works
+##  How It Works
 
 The system uses direct microphone access instead of processing audio from the browser, which eliminates audio format conversion issues. The server listens to your system microphone and sends transcriptions to the web interface in real-time via WebSocket.
 
@@ -97,7 +97,7 @@ The system uses direct microphone access instead of processing audio from the br
 3. **WebSocket Server** - Real-time communication with web interface
 4. **Web Interface** - User-friendly browser-based control panel
 
-## 🛠️ Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -130,7 +130,7 @@ python minimal_connection_test.py
 - Install ALSA development headers: `sudo apt-get install libasound2-dev`
 - Ensure user is in audio group: `sudo usermod -a -G audio $USER`
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -142,13 +142,13 @@ python minimal_connection_test.py
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Google Speech Recognition API for reliable speech-to-text conversion
 - FastAPI for the excellent web framework
 - SpeechRecognition library for Python audio processing
 
-## 📞 Support
+##  Support
 
 If you encounter any issues or have questions:
 
