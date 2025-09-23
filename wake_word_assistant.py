@@ -250,6 +250,17 @@ class WakeWordAssistant:
             # Entertainment
             r'tell me a joke|joke please': self.get_random_joke,
             r'random fact|tell me a fact': self.get_random_fact,
+            
+            # YouTube/Video Controls
+            r'play|pause|play pause|pause play': self.youtube_play_pause,
+            r'fullscreen|full screen|go fullscreen': self.youtube_fullscreen,
+            r'skip forward|forward|skip ahead': self.youtube_skip_forward,
+            r'skip back|go back|rewind': self.youtube_skip_back,
+            r'skip forward 10|forward 10|skip ahead 10': self.youtube_skip_forward_10,
+            r'skip back 10|go back 10|rewind 10': self.youtube_skip_back_10,
+            r'volume up|louder|increase volume': self.youtube_volume_up,
+            r'volume down|quieter|decrease volume': self.youtube_volume_down,
+            r'mute|unmute|toggle mute': self.youtube_mute,
         }
         
         # Compile regex patterns
@@ -570,6 +581,133 @@ class WakeWordAssistant:
         ]
         import random
         return random.choice(jokes)
+        
+    def youtube_play_pause(self):
+        """Toggle play/pause on YouTube or any video player"""
+        try:
+            import pyautogui
+            pyautogui.press('space')
+            return "Play/pause toggled"
+        except ImportError:
+            # Fallback using keyboard module
+            try:
+                import keyboard
+                keyboard.press_and_release('space')
+                return "Play/pause toggled"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_fullscreen(self):
+        """Toggle fullscreen on YouTube"""
+        try:
+            import pyautogui
+            pyautogui.press('f')
+            return "Fullscreen toggled"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('f')
+                return "Fullscreen toggled"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_skip_forward(self):
+        """Skip forward 5 seconds"""
+        try:
+            import pyautogui
+            pyautogui.press('right')
+            return "Skipped forward 5 seconds"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('right')
+                return "Skipped forward 5 seconds"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_skip_back(self):
+        """Skip back 5 seconds"""
+        try:
+            import pyautogui
+            pyautogui.press('left')
+            return "Skipped back 5 seconds"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('left')
+                return "Skipped back 5 seconds"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_skip_forward_10(self):
+        """Skip forward 10 seconds"""
+        try:
+            import pyautogui
+            pyautogui.press('l')
+            return "Skipped forward 10 seconds"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('l')
+                return "Skipped forward 10 seconds"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_skip_back_10(self):
+        """Skip back 10 seconds"""
+        try:
+            import pyautogui
+            pyautogui.press('j')
+            return "Skipped back 10 seconds"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('j')
+                return "Skipped back 10 seconds"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_volume_up(self):
+        """Increase volume"""
+        try:
+            import pyautogui
+            pyautogui.press('up')
+            return "Volume increased"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('up')
+                return "Volume increased"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_volume_down(self):
+        """Decrease volume"""
+        try:
+            import pyautogui
+            pyautogui.press('down')
+            return "Volume decreased"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('down')
+                return "Volume decreased"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def youtube_mute(self):
+        """Mute/unmute video"""
+        try:
+            import pyautogui
+            pyautogui.press('m')
+            return "Mute toggled"
+        except ImportError:
+            try:
+                import keyboard
+                keyboard.press_and_release('m')
+                return "Mute toggled"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
         
     def get_random_fact(self):
         facts = [

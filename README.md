@@ -7,6 +7,7 @@ A customizable, always-listening voice assistant for Windows that responds to yo
 - **Custom Wake Word Training** - Train your own wake word like "Hey Assistant" or "Computer Sarah"
 - **Always Listening** - Runs in background, activates on your wake word
 - **Voice Commands** - Open websites, answer questions, control your PC
+- **Media Controls** - Control YouTube, Netflix, and video players hands-free
 - **Privacy First** - Everything runs locally, no data sent to cloud
 - **Auto-Start** - Optionally start with Windows
 - **Easy Setup** - Simple GUI setup process
@@ -32,13 +33,25 @@ A customizable, always-listening voice assistant for Windows that responds to yo
 
 ## 🎯 Voice Commands
 
-Once your assistant is running, try these commands:
-
+### Basic Commands
 - **"[Your Wake Word], what time is it?"**
 - **"[Your Wake Word], open YouTube"**
 - **"[Your Wake Word], search for Python tutorials"**
 - **"[Your Wake Word], what's the weather?"**
 - **"[Your Wake Word], tell me a joke"**
+
+### 🎬 YouTube/Video Controls
+Perfect for hands-free video watching:
+- **"[Your Wake Word], play"** / **"pause"** - Toggle play/pause
+- **"[Your Wake Word], fullscreen"** - Toggle fullscreen mode
+- **"[Your Wake Word], skip forward"** - Skip ahead 5 seconds
+- **"[Your Wake Word], skip back"** - Go back 5 seconds
+- **"[Your Wake Word], skip forward 10"** - Skip ahead 10 seconds
+- **"[Your Wake Word], skip back 10"** - Go back 10 seconds
+- **"[Your Wake Word], volume up"** / **"volume down"** - Adjust volume
+- **"[Your Wake Word], mute"** - Toggle mute
+
+*Works with YouTube, Netflix, VLC, and most video players!*
 
 ### 🔧 Optional: Enhanced AI Responses
 
