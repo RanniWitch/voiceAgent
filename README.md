@@ -23,7 +23,7 @@ A customizable, always-listening voice assistant for Windows that responds to yo
 
 2. **Run Setup**
    ```bash
-   python voice_assistant_setup.py
+   py voice_assistant_setup.py
    ```
 
 3. **Train Your Wake Word**
@@ -63,17 +63,17 @@ For smarter conversations, you can optionally add a free Gemini API key:
 
 ### Test Voice Recognition
 ```bash
-python simple_mic_test.py
+py simple_mic_test.py
 ```
 
 ### Test Dependencies
 ```bash
-python check_dependencies.py
+py check_dependencies.py
 ```
 
 ### Test WebSocket Connection
 ```bash
-python minimal_connection_test.py
+py minimal_connection_test.py
 ```
 
 ## 📁 Project Structure
@@ -106,7 +106,7 @@ python -m pytest tests/
 
 Test microphone:
 ```bash
-python simple_mic_test.py
+py simple_mic_test.py
 ```
 
 ## 📋 Requirements

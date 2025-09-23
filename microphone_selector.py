@@ -63,14 +63,23 @@ class MicrophoneSelector:
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(fill=tk.X, pady=(10, 0))
         
+        # Test button
         ttk.Button(button_frame, text="🧪 Test Selected Microphone", 
-                  command=self.test_microphone).pack(side=tk.LEFT, padx=(0, 10))
+                  command=self.test_microphone, width=25).pack(pady=(0, 5))
         
-        ttk.Button(button_frame, text="💾 Save Selection", 
-                  command=self.save_selection).pack(side=tk.LEFT, padx=(0, 10))
+        # Save button (prominent)
+        save_button = ttk.Button(button_frame, text="💾 Save Selection", 
+                                command=self.save_selection, width=25)
+        save_button.pack(pady=(0, 5))
         
+        # Refresh button
         ttk.Button(button_frame, text="🔄 Refresh List", 
-                  command=self.populate_microphones).pack(side=tk.LEFT)
+                  command=self.populate_microphones, width=25).pack(pady=(0, 5))
+        
+        # Status label
+        self.status_label = ttk.Label(button_frame, text="Select a microphone and test it first", 
+                                     font=("Arial", 9), foreground="blue")
+        self.status_label.pack(pady=(10, 0))
         
     def populate_microphones(self):
         """Populate the microphone list"""
@@ -100,47 +109,91 @@ class MicrophoneSelector:
         mic_index = selection[0]
         
         try:
-            # Test the microphone
-            test_mic = sr.Microphone(device_index=mic_index)
+            # Test the microphone with more sensitive settings
+            test_mic = None
+            test_recognizer = sr.Recognizer()
             
-            messagebox.showinfo("Testing", "Speak now for 3 seconds to test the microphone...")
+            # Make it more sensitive for testing
+            test_recognizer.energy_threshold = 300  # Lower = more sensitive
+            test_recognizer.dynamic_energy_threshold = True
+            test_recognizer.pause_threshold = 0.5
             
-            with test_mic as source:
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-                audio = self.recognizer.listen(source, timeout=3, phrase_time_limit=3)
-                
-            # Try to recognize
+            messagebox.showinfo("Testing", "🎤 Speak loudly and clearly for 5 seconds!\n\nSay something like 'Hello, this is a test'")
+            
             try:
-                text = self.recognizer.recognize_google(audio)
-                messagebox.showinfo("Test Result", f"✅ Microphone working!\n\nHeard: '{text}'")
-                self.selected_mic_index = mic_index
-            except sr.UnknownValueError:
-                messagebox.showinfo("Test Result", "✅ Microphone detected audio but couldn't understand speech.\n\nThis is normal - the microphone is working.")
-                self.selected_mic_index = mic_index
+                test_mic = sr.Microphone(device_index=mic_index)
                 
+                with test_mic as source:
+                    print(f"🎤 Testing microphone {mic_index}...")
+                    # Quick ambient noise adjustment
+                    test_recognizer.adjust_for_ambient_noise(source, duration=0.3)
+                    print(f"🎤 Energy threshold: {test_recognizer.energy_threshold}")
+                    
+                    # Listen for longer with more sensitive settings
+                    audio = test_recognizer.listen(source, timeout=6, phrase_time_limit=5)
+                    print("🎤 Audio captured, processing...")
+                    
+                # Try to recognize
+                try:
+                    text = test_recognizer.recognize_google(audio)
+                    messagebox.showinfo("Test Result", f"✅ Microphone working perfectly!\n\nHeard: '{text}'\n\nClick 'Save Selection' to use this microphone.")
+                    self.selected_mic_index = mic_index
+                except sr.UnknownValueError:
+                    messagebox.showinfo("Test Result", "✅ Microphone detected audio but couldn't understand speech.\n\nThis usually means the microphone is working but the audio wasn't clear enough.\n\nClick 'Save Selection' if you want to use this microphone anyway.")
+                    self.selected_mic_index = mic_index
+                except sr.RequestError as e:
+                    messagebox.showerror("Network Error", f"❌ Could not connect to speech recognition service: {e}\n\nBut the microphone captured audio successfully!")
+                    self.selected_mic_index = mic_index
+                    
+            except sr.WaitTimeoutError:
+                messagebox.showwarning("No Audio", "❌ No audio detected.\n\nMake sure:\n• Microphone is not muted\n• You're speaking loudly\n• The correct microphone is selected")
+            except Exception as mic_error:
+                messagebox.showerror("Microphone Error", f"❌ Could not access microphone {mic_index}:\n{mic_error}\n\nThis microphone may be in use by another application or not available.")
+            finally:
+                # Safely close microphone if it was opened
+                if test_mic is not None:
+                    try:
+                        if hasattr(test_mic, 'stream') and test_mic.stream is not None:
+                            test_mic.stream.close()
+                    except:
+                        pass
+                        
         except Exception as e:
-            messagebox.showerror("Test Failed", f"❌ Microphone test failed: {e}")
+            messagebox.showerror("Test Failed", f"❌ Microphone test failed: {e}\n\nTry using the simple microphone test instead:\npy simple_microphone_test.py")
             
     def save_selection(self):
         """Save the microphone selection"""
-        if self.selected_mic_index is None:
-            messagebox.showwarning("No Selection", "Please test a microphone first.")
+        selection = self.mic_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a microphone from the list first.")
             return
             
+        # Use the selected microphone even if not tested
+        mic_index = selection[0]
+        
         try:
             # Save to config file
+            mic_names = sr.Microphone.list_microphone_names()
             config = {
-                'microphone_index': self.selected_mic_index,
-                'microphone_name': sr.Microphone.list_microphone_names()[self.selected_mic_index]
+                'microphone_index': mic_index,
+                'microphone_name': mic_names[mic_index]
             }
             
             with open('microphone_config.json', 'w') as f:
                 json.dump(config, f, indent=2)
                 
-            messagebox.showinfo("Saved", f"✅ Microphone selection saved!\n\nSelected: {config['microphone_name']}\n\nRestart your voice assistant to use the new microphone.")
+            self.status_label.config(text="✅ Saved! Restart voice assistant to use new microphone.", 
+                                   foreground="green")
+            
+            messagebox.showinfo("Saved Successfully", 
+                              f"✅ Microphone selection saved!\n\n"
+                              f"Selected: {config['microphone_name']}\n\n"
+                              f"🔄 Restart your voice assistant to use the new microphone.\n\n"
+                              f"💡 Tip: Avoid microphones with 'Stereo Mix' or 'What U Hear' to prevent voice chat interference.")
             
         except Exception as e:
             messagebox.showerror("Save Failed", f"Could not save selection: {e}")
+            self.status_label.config(text="❌ Save failed", foreground="red")
             
     def run(self):
         """Start the application"""
