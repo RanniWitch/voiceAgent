@@ -40,6 +40,12 @@ Once your assistant is running, try these commands:
 - **"[Your Wake Word], what's the weather?"**
 - **"[Your Wake Word], tell me a joke"**
 
+### 🔧 Optional: Enhanced AI Responses
+
+For smarter conversations, you can optionally add a free Gemini API key:
+1. Get a free key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. The assistant will ask for it during setup (or skip for basic responses)
+
 ##  Testing
 
 ### Test Voice Recognition
@@ -95,7 +101,9 @@ python simple_mic_test.py
 - Windows 10/11
 - Python 3.7+
 - Microphone
-- Internet connection (for some commands)
+- Internet connection (for speech recognition and some commands)
+
+**No API keys required!** The assistant works out-of-the-box with free services.
 
 ## 🆘 Troubleshooting
 
