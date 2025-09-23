@@ -25,7 +25,40 @@ class WakeWordAssistant:
     def __init__(self):
         # Voice recognition setup
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        
+        # Configure microphone with better settings
+        try:
+            # Check for saved microphone configuration
+            mic_index = None
+            try:
+                with open('microphone_config.json', 'r') as f:
+                    config = json.load(f)
+                    mic_index = config.get('microphone_index')
+                    print(f"🎤 Using saved microphone: {config.get('microphone_name', 'Unknown')}")
+            except FileNotFoundError:
+                print("🎤 No microphone config found, using default")
+            
+            # Initialize microphone
+            if mic_index is not None:
+                self.microphone = sr.Microphone(device_index=mic_index)
+            else:
+                self.microphone = sr.Microphone()
+            
+            # Adjust for ambient noise and set energy threshold
+            with self.microphone as source:
+                print("🎤 Calibrating microphone for ambient noise...")
+                self.recognizer.adjust_for_ambient_noise(source, duration=1)
+                
+            # Set energy threshold higher to avoid picking up background audio
+            self.recognizer.energy_threshold = 4000  # Higher = less sensitive
+            self.recognizer.dynamic_energy_threshold = True
+            self.recognizer.pause_threshold = 0.8  # Longer pause before considering speech done
+            
+            print(f"🎤 Microphone configured - Energy threshold: {self.recognizer.energy_threshold}")
+            
+        except Exception as e:
+            print(f"⚠️ Microphone setup warning: {e}")
+            self.microphone = sr.Microphone()
         
         # Text-to-speech setup
         try:
@@ -261,6 +294,9 @@ class WakeWordAssistant:
             r'volume up|louder|increase volume': self.youtube_volume_up,
             r'volume down|quieter|decrease volume': self.youtube_volume_down,
             r'mute|unmute|toggle mute': self.youtube_mute,
+            
+            # Microphone Controls
+            r'list microphones|show microphones': self.list_microphones,
         }
         
         # Compile regex patterns
@@ -586,12 +622,17 @@ class WakeWordAssistant:
         """Toggle play/pause on YouTube or any video player"""
         try:
             import pyautogui
+            import time
+            # Small delay to ensure command is processed
+            time.sleep(0.1)
             pyautogui.press('space')
             return "Play/pause toggled"
         except ImportError:
             # Fallback using keyboard module
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('space')
                 return "Play/pause toggled"
             except ImportError:
@@ -601,11 +642,15 @@ class WakeWordAssistant:
         """Toggle fullscreen on YouTube"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('f')
             return "Fullscreen toggled"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('f')
                 return "Fullscreen toggled"
             except ImportError:
@@ -615,11 +660,15 @@ class WakeWordAssistant:
         """Skip forward 5 seconds"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('right')
             return "Skipped forward 5 seconds"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('right')
                 return "Skipped forward 5 seconds"
             except ImportError:
@@ -629,11 +678,15 @@ class WakeWordAssistant:
         """Skip back 5 seconds"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('left')
             return "Skipped back 5 seconds"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('left')
                 return "Skipped back 5 seconds"
             except ImportError:
@@ -643,11 +696,15 @@ class WakeWordAssistant:
         """Skip forward 10 seconds"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('l')
             return "Skipped forward 10 seconds"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('l')
                 return "Skipped forward 10 seconds"
             except ImportError:
@@ -657,11 +714,15 @@ class WakeWordAssistant:
         """Skip back 10 seconds"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('j')
             return "Skipped back 10 seconds"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('j')
                 return "Skipped back 10 seconds"
             except ImportError:
@@ -671,11 +732,15 @@ class WakeWordAssistant:
         """Increase volume"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('up')
             return "Volume increased"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('up')
                 return "Volume increased"
             except ImportError:
@@ -685,11 +750,15 @@ class WakeWordAssistant:
         """Decrease volume"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('down')
             return "Volume decreased"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('down')
                 return "Volume decreased"
             except ImportError:
@@ -699,11 +768,15 @@ class WakeWordAssistant:
         """Mute/unmute video"""
         try:
             import pyautogui
+            import time
+            time.sleep(0.1)
             pyautogui.press('m')
             return "Mute toggled"
         except ImportError:
             try:
                 import keyboard
+                import time
+                time.sleep(0.1)
                 keyboard.press_and_release('m')
                 return "Mute toggled"
             except ImportError:
@@ -718,6 +791,31 @@ class WakeWordAssistant:
         ]
         import random
         return random.choice(facts)
+    
+    def list_microphones(self):
+        """List available microphones"""
+        try:
+            import speech_recognition as sr
+            print("\n🎤 Available Microphones:")
+            for index, name in enumerate(sr.Microphone.list_microphone_names()):
+                print(f"  {index}: {name}")
+            return "Check console for microphone list"
+        except Exception as e:
+            return f"Could not list microphones: {e}"
+    
+    def set_microphone(self, mic_index):
+        """Set specific microphone by index"""
+        try:
+            import speech_recognition as sr
+            self.microphone = sr.Microphone(device_index=mic_index)
+            
+            # Recalibrate with new microphone
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source, duration=1)
+            
+            return f"Switched to microphone {mic_index}"
+        except Exception as e:
+            return f"Could not switch microphone: {e}"
         
     def speak_response(self, text):
         """Convert text to speech"""
@@ -820,6 +918,10 @@ class WakeWordAssistant:
         ttk.Button(control_frame, text="🎓 Train Custom Wake Word", 
                   command=self.open_wake_word_trainer).grid(row=3, column=0, columnspan=3, pady=(5, 0))
         
+        # Add button to select microphone
+        ttk.Button(control_frame, text="🎤 Select Microphone", 
+                  command=self.open_microphone_selector).grid(row=4, column=0, columnspan=3, pady=(5, 0))
+        
         # Conversation section
         conv_frame = ttk.LabelFrame(main_frame, text="Conversation History", padding="10")
         conv_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
@@ -914,6 +1016,19 @@ Say "goodbye" or "stop listening" to stop wake word detection."""
                               "After training, restart this assistant to use your custom wake word.")
         except Exception as e:
             messagebox.showerror("Error", f"Could not open wake word trainer: {e}")
+    
+    def open_microphone_selector(self):
+        """Open the microphone selector"""
+        try:
+            import subprocess
+            import sys
+            subprocess.Popen(["py", "microphone_selector.py"])
+            messagebox.showinfo("Microphone Selector", 
+                              "Opening Microphone Selector in a new window.\n\n"
+                              "Select your physical microphone to avoid picking up voice chat audio.\n"
+                              "After selecting, restart this assistant to use the new microphone.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open microphone selector: {e}")
         
     def run(self):
         """Start the assistant"""
