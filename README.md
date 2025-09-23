@@ -1,60 +1,44 @@
-# AI Voice Recognition Agent
+# 🎤 Personal Voice Assistant
 
-A real-time voice recognition system with web interface that converts speech to text using Google Speech Recognition API.
+A customizable, always-listening voice assistant for Windows that responds to your personal wake word. Similar to Alexa or Google Assistant, but completely offline and privacy-focused.
 
-##  Features
+## ✨ Features
 
-- **Real-time speech transcription** - Immediate speech-to-text conversion
-- **Web interface** - Easy-to-use browser-based interface  
-- **Direct microphone access** - Bypasses browser audio format issues
-- **Multiple microphone support** - Works with various audio devices
-- **WebSocket communication** - Real-time data streaming
-- **No complex dependencies** - Simple setup and reliable operation
+- **Custom Wake Word Training** - Train your own wake word like "Hey Assistant" or "Computer Sarah"
+- **Always Listening** - Runs in background, activates on your wake word
+- **Voice Commands** - Open websites, answer questions, control your PC
+- **Privacy First** - Everything runs locally, no data sent to cloud
+- **Auto-Start** - Optionally start with Windows
+- **Easy Setup** - Simple GUI setup process
 
-##  Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.8 or higher
-- Microphone access
-- Internet connection (for Google Speech Recognition API)
-
-### Installation
-
-1. **Clone the repository:**
+1. **Download & Install**
    ```bash
-   git clone https://github.com/yourusername/ai-voice-agent.git
-   cd ai-voice-agent
-   ```
-
-2. **Create virtual environment (recommended):**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
+   git clone https://github.com/yourusername/personal-voice-assistant
+   cd personal-voice-assistant
    pip install -r requirements.txt
    ```
 
-### Usage
-
-1. **Run the voice recognition server:**
+2. **Run Setup**
    ```bash
-   python final_working_solution.py
+   python voice_assistant_setup.py
    ```
 
-2. **Open your browser and go to:**
-   ```
-   http://localhost:8016
-   ```
+3. **Train Your Wake Word**
+   - Enter your custom wake word (e.g., "Hey Assistant")
+   - Say it 3 times to train the AI
+   - Start using your assistant!
 
-3. **Use the interface:**
-   - Click "Connect" to establish WebSocket connection
-   - Click "Start Listening" to begin voice recognition
-   - Speak normally - your speech will be transcribed in real-time!
-   - Click "Stop Listening" when done
+## 🎯 Voice Commands
+
+Once your assistant is running, try these commands:
+
+- **"[Your Wake Word], what time is it?"**
+- **"[Your Wake Word], open YouTube"**
+- **"[Your Wake Word], search for Python tutorials"**
+- **"[Your Wake Word], what's the weather?"**
+- **"[Your Wake Word], tell me a joke"**
 
 ##  Testing
 
@@ -73,85 +57,71 @@ python check_dependencies.py
 python minimal_connection_test.py
 ```
 
-##  Project Structure
+## 📁 Project Structure
 
 ```
-ai-voice-agent/
-├── final_working_solution.py    # Main application
-├── simple_mic_test.py          # Voice recognition test
-├── direct_microphone_voice.py  # Command-line tool
-├── check_dependencies.py       # Dependency checker
-├── requirements.txt            # Python dependencies
-├── README.md                   # This file
-├── src/                        # Additional components
-└── tests/                      # Test files
+├── voice_assistant_setup.py      # Main setup launcher
+├── wake_word_assistant.py        # Core voice assistant
+├── custom_wake_word_trainer.py   # Wake word training system
+├── setup_windows_startup.py      # Auto-start configuration
+├── src/                          # Advanced processing modules
+├── examples/                     # Usage examples
+└── tests/                        # Test suite
 ```
 
-##  How It Works
+## 🔧 Advanced Features
 
-The system uses direct microphone access instead of processing audio from the browser, which eliminates audio format conversion issues. The server listens to your system microphone and sends transcriptions to the web interface in real-time via WebSocket.
+The project includes advanced modules for:
+- Real-time speech processing
+- Multi-language translation
+- Web-based subtitle display
+- Audio processing pipeline
+- Voice activity detection
 
-**Architecture:**
-1. **Python Backend** - Handles microphone input and speech recognition
-2. **Google Speech Recognition API** - Converts speech to text (free tier)
-3. **WebSocket Server** - Real-time communication with web interface
-4. **Web Interface** - User-friendly browser-based control panel
+## 🛠️ Development
 
-##  Troubleshooting
+Run tests:
+```bash
+python -m pytest tests/
+```
 
-### Common Issues
-
-**Microphone not working:**
+Test microphone:
 ```bash
 python simple_mic_test.py
 ```
 
-**Dependencies missing:**
-```bash
-python check_dependencies.py
-```
+## 📋 Requirements
 
-**Connection issues:**
-```bash
-python minimal_connection_test.py
-```
+- Windows 10/11
+- Python 3.7+
+- Microphone
+- Internet connection (for some commands)
 
-### Platform-Specific Notes
+## 🆘 Troubleshooting
 
-**Windows:**
-- May need to install Visual C++ Build Tools for some dependencies
-- Ensure microphone permissions are granted
+**Assistant not responding?**
+- Check microphone permissions
+- Retrain your wake word
+- Ensure assistant window isn't minimized
 
-**macOS:**
-- May need to grant microphone access in System Preferences
-- Install Xcode command line tools if needed
+**Poor wake word recognition?**
+- Train in a quiet environment
+- Speak clearly during training
+- Try a longer, more unique wake word
 
-**Linux:**
-- Install ALSA development headers: `sudo apt-get install libasound2-dev`
-- Ensure user is in audio group: `sudo usermod -a -G audio $USER`
+**Need help?**
+- Check the built-in help in the setup GUI
+- Review the examples folder
+- Open an issue on GitHub
 
-##  Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if needed
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-##  Acknowledgments
-
-- Google Speech Recognition API for reliable speech-to-text conversion
-- FastAPI for the excellent web framework
-- SpeechRecognition library for Python audio processing
-
-##  Support
-
-If you encounter any issues or have questions:
-
-1. Check the troubleshooting section above
-2. Run the test scripts to diagnose problems
-3. Open an issue on GitHub with detailed information about your setup and the problem
+MIT License - see [LICENSE](LICENSE) file for details.
