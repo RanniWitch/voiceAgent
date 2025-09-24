@@ -115,9 +115,12 @@ Let's get you set up in 2 easy steps:"""
         actions_frame = ttk.LabelFrame(parent, text="Quick Actions", padding="20")
         actions_frame.pack(fill=tk.X, pady=(0, 20))
         
-        # Start Assistant button (prominent)
+        # Start Assistant buttons (prominent)
         ttk.Button(actions_frame, text="🚀 Start Voice Assistant", 
-                  command=self.start_assistant, width=30).pack(pady=(0, 15))
+                  command=self.start_assistant, width=30).pack(pady=(0, 10))
+        
+        ttk.Button(actions_frame, text="🎨 Start Visual Assistant", 
+                  command=self.start_visual_assistant, width=30).pack(pady=(0, 15))
         
         # Other actions
         button_frame = ttk.Frame(actions_frame)
@@ -214,6 +217,31 @@ Let's get you set up in 2 easy steps:"""
             
         except Exception as e:
             messagebox.showerror("Error", f"Could not start assistant: {e}")
+    
+    def start_visual_assistant(self):
+        """Start the visual voice assistant"""
+        try:
+            # Check if wake word is trained
+            if not os.path.exists('custom_wake_word_model.pkl'):
+                result = messagebox.askyesno("No Wake Word Trained", 
+                                           "You haven't trained a custom wake word yet.\n\n"
+                                           "The visual assistant will use generic wake words like 'hey assistant'.\n\n"
+                                           "Do you want to continue anyway?")
+                if not result:
+                    return
+            
+            # Start the visual assistant
+            subprocess.Popen([sys.executable, "voice_visualizer.py"])
+            messagebox.showinfo("Visual Assistant Started", 
+                              "🎨 Visual Voice Assistant is starting...\n\n"
+                              "Enjoy the beautiful Siri-like waveform visualization!\n"
+                              "The assistant will show real-time audio waves as you speak.")
+            
+            # Close setup window
+            self.root.destroy()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not start visual assistant: {e}")
             
     def test_microphone(self):
         """Test microphone functionality"""
