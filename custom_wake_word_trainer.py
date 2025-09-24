@@ -239,17 +239,36 @@ class CustomWakeWordTrainer:
             
             avg_similarity = np.mean(similarities) if similarities else 0.5
             
-            # Create the model
+            # Calculate more sophisticated metrics for better accuracy
+            # Calculate variance and consistency metrics
+            feature_variance = np.var(features_array, axis=0)
+            consistency_score = 1.0 / (1.0 + np.mean(feature_variance))
+            
+            # Calculate quality score based on sample consistency
+            quality_score = min(1.0, avg_similarity * consistency_score)
+            
+            # Set a stricter threshold based on quality
+            if quality_score > 0.8:
+                confidence_threshold = max(0.75, avg_similarity - 0.05)  # High quality = strict threshold
+            elif quality_score > 0.6:
+                confidence_threshold = max(0.70, avg_similarity - 0.10)  # Medium quality
+            else:
+                confidence_threshold = max(0.65, avg_similarity - 0.15)  # Lower quality = more lenient
+            
+            # Create the enhanced model
             model = {
                 'centroid': centroid.tolist(),
                 'std_dev': std_dev.tolist(),
                 'avg_similarity': avg_similarity,
+                'consistency_score': consistency_score,
+                'quality_score': quality_score,
                 'n_samples': len(features_array),
                 'feature_ranges': {
                     'min': np.min(features_array, axis=0).tolist(),
                     'max': np.max(features_array, axis=0).tolist()
                 },
-                'confidence_threshold': max(0.6, avg_similarity - 0.1)  # Adaptive threshold
+                'feature_variance': feature_variance.tolist(),
+                'confidence_threshold': confidence_threshold
             }
             
             self.wake_word_data['model'] = model
@@ -261,12 +280,15 @@ class CustomWakeWordTrainer:
                 self.status_label.config(text="✅ Wake word model trained successfully!")
                 self.update_training_display()
                 
-                # Show training results
+                # Show training results with quality metrics
+                quality_text = "Excellent" if quality_score > 0.8 else "Good" if quality_score > 0.6 else "Fair"
                 messagebox.showinfo("Training Complete", 
                                   f"Wake word '{self.wake_word_data['word']}' trained successfully!\n\n"
                                   f"Samples: {model['n_samples']}\n"
+                                  f"Quality: {quality_text} ({quality_score:.2f})\n"
                                   f"Avg Similarity: {avg_similarity:.2f}\n"
-                                  f"Confidence Threshold: {model['confidence_threshold']:.2f}")
+                                  f"Confidence Threshold: {model['confidence_threshold']:.2f}\n\n"
+                                  f"💡 Tip: Higher quality = more accurate detection!")
                 return True
             else:
                 self.status_label.config(text="❌ Failed to save model")

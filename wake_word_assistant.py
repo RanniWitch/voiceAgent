@@ -188,7 +188,7 @@ class WakeWordAssistant:
             return None
             
     def detect_custom_wake_word(self, audio_data):
-        """Detect custom trained wake word using acoustic features"""
+        """Detect custom trained wake word using acoustic features with improved accuracy"""
         if not self.use_custom_model or not self.custom_wake_word_model:
             return False, 0.0
             
@@ -202,14 +202,33 @@ class WakeWordAssistant:
             model = self.custom_wake_word_model['model']
             centroid = np.array(model['centroid'])
             
-            # Calculate cosine similarity
-            from scipy.spatial.distance import cosine
-            similarity = 1 - cosine(features, centroid)
-            confidence = max(0.0, min(1.0, similarity))
+            # Calculate multiple similarity metrics for better accuracy
+            from scipy.spatial.distance import cosine, euclidean
             
-            # Check against threshold
-            threshold = self.custom_wake_word_model['confidence_threshold']
-            detected = confidence >= threshold
+            # Cosine similarity (good for pattern matching)
+            cosine_similarity = 1 - cosine(features, centroid)
+            
+            # Euclidean distance (normalized)
+            euclidean_dist = euclidean(features, centroid)
+            max_dist = np.linalg.norm(centroid) + np.linalg.norm(features)
+            euclidean_similarity = 1 - (euclidean_dist / max_dist) if max_dist > 0 else 0
+            
+            # Combined confidence score (weighted average)
+            confidence = (0.7 * cosine_similarity + 0.3 * euclidean_similarity)
+            confidence = max(0.0, min(1.0, confidence))
+            
+            # Use a higher, more strict threshold for better accuracy
+            base_threshold = self.custom_wake_word_model.get('confidence_threshold', 0.7)
+            strict_threshold = max(0.85, base_threshold + 0.15)  # Much stricter
+            
+            detected = confidence >= strict_threshold
+            
+            # Additional validation: check audio length (wake words should be 1-3 seconds)
+            if detected:
+                audio_length = len(audio_data) / 16000  # Assuming 16kHz sample rate
+                if audio_length < 0.5 or audio_length > 4.0:  # Too short or too long
+                    detected = False
+                    confidence *= 0.5  # Penalize confidence
             
             return detected, confidence
             
@@ -317,30 +336,106 @@ class WakeWordAssistant:
         self.ai_trigger_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.ai_triggers]
         
     def detect_wake_word(self, text, audio_data=None):
-        """Detect if wake word is in the text or audio"""
+        """Detect if wake word is in the text or audio with improved precision"""
         # First try custom wake word detection if available
         if self.use_custom_model and audio_data is not None:
             detected, confidence = self.detect_custom_wake_word(audio_data)
             if detected:
                 wake_word = self.custom_wake_word_model['word']
                 print(f"🎯 Custom wake word detected: '{wake_word}' (confidence: {confidence:.2f})")
-                return True, wake_word
-        
-        # Fallback to generic text-based detection
-        text_lower = text.lower().strip()
-        
-        for wake_word in self.generic_wake_words:
-            if wake_word in text_lower:
-                # Check if it's at the beginning or has some context
-                words = text_lower.split()
-                wake_word_parts = wake_word.split()
                 
-                # Look for the wake word sequence in the text
-                for i in range(len(words) - len(wake_word_parts) + 1):
-                    if words[i:i+len(wake_word_parts)] == wake_word_parts:
-                        return True, wake_word
+                # Double-check with text-based detection for extra accuracy
+                if self.validate_wake_word_in_text(text, wake_word):
+                    return True, wake_word
+                else:
+                    print(f"⚠️ Audio detected wake word but text validation failed: '{text}'")
+                    # Still return true but with lower confidence logging
+                    return True, wake_word
+        
+        # Fallback to generic text-based detection (more precise)
+        if self.use_custom_model:
+            # If we have a custom model, only use text detection as backup
+            custom_wake_word = self.custom_wake_word_model['word']
+            if self.validate_wake_word_in_text(text, custom_wake_word):
+                print(f"🎯 Text-based custom wake word detected: '{custom_wake_word}'")
+                return True, custom_wake_word
+        else:
+            # Use generic wake words with strict validation
+            for wake_word in self.generic_wake_words:
+                if self.validate_wake_word_in_text(text, wake_word):
+                    print(f"🎯 Generic wake word detected: '{wake_word}'")
+                    return True, wake_word
                         
         return False, None
+    
+    def validate_wake_word_in_text(self, text, wake_word):
+        """Validate wake word appears correctly in text with strict rules"""
+        if not text or not wake_word:
+            return False
+            
+        text_lower = text.lower().strip()
+        wake_word_lower = wake_word.lower().strip()
+        
+        # Remove punctuation and extra spaces
+        import re
+        text_clean = re.sub(r'[^\w\s]', ' ', text_lower)
+        text_clean = ' '.join(text_clean.split())  # Normalize spaces
+        
+        wake_word_clean = re.sub(r'[^\w\s]', ' ', wake_word_lower)
+        wake_word_clean = ' '.join(wake_word_clean.split())
+        
+        words = text_clean.split()
+        wake_word_parts = wake_word_clean.split()
+        
+        if len(wake_word_parts) == 0:
+            return False
+        
+        # Look for exact wake word sequence
+        for i in range(len(words) - len(wake_word_parts) + 1):
+            if words[i:i+len(wake_word_parts)] == wake_word_parts:
+                # Additional validation: wake word should be at the beginning or after a pause
+                if i == 0:  # At the beginning
+                    return True
+                elif i <= 2:  # Near the beginning (allowing for "um", "uh", etc.)
+                    return True
+                else:
+                    # Wake word in middle - be more strict
+                    # Only allow if preceded by natural pause words
+                    prev_word = words[i-1] if i > 0 else ""
+                    if prev_word in ["um", "uh", "so", "well", "okay", "now"]:
+                        return True
+                    
+        # Also check for partial matches with high similarity (for speech recognition errors)
+        if len(wake_word_parts) == 1:
+            # Single word wake word - check for close matches
+            for word in words[:3]:  # Only check first 3 words
+                if self.words_similar(word, wake_word_parts[0]):
+                    return True
+        
+        return False
+    
+    def words_similar(self, word1, word2, threshold=0.8):
+        """Check if two words are similar (for handling speech recognition errors)"""
+        if not word1 or not word2:
+            return False
+            
+        # Exact match
+        if word1 == word2:
+            return True
+            
+        # Length check - if too different, not similar
+        if abs(len(word1) - len(word2)) > 2:
+            return False
+            
+        # Simple character overlap check
+        common_chars = set(word1) & set(word2)
+        total_chars = set(word1) | set(word2)
+        
+        if len(total_chars) == 0:
+            return False
+            
+        similarity = len(common_chars) / len(total_chars)
+        return similarity >= threshold
         
     def extract_command_after_wake_word(self, text, wake_word):
         """Extract the command that comes after the wake word"""
