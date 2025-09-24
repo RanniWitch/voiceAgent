@@ -244,11 +244,19 @@ class CustomWakeWordTrainer:
             feature_variance = np.var(features_array, axis=0)
             consistency_score = 1.0 / (1.0 + np.mean(feature_variance))
             
-            # Calculate quality score based on sample consistency
-            quality_score = min(1.0, avg_similarity * consistency_score)
+            # Calculate quality score with better handling of high variance
+            # If similarity is very high but variance is high, it's likely audio processing issues
+            if avg_similarity > 0.95 and consistency_score < 0.1:
+                # High similarity suggests good pronunciation, adjust for audio issues
+                quality_score = min(1.0, avg_similarity * 0.7)  # Give benefit of doubt
+                print(f"⚠️ High variance detected but excellent similarity - likely audio processing issue")
+            else:
+                quality_score = min(1.0, avg_similarity * consistency_score)
             
-            # Set a stricter threshold based on quality
-            if quality_score > 0.8:
+            # Set a stricter threshold based on quality, with special handling for high similarity
+            if avg_similarity > 0.95:  # Excellent pronunciation consistency
+                confidence_threshold = max(0.75, avg_similarity - 0.10)  # Use similarity-based threshold
+            elif quality_score > 0.8:
                 confidence_threshold = max(0.75, avg_similarity - 0.05)  # High quality = strict threshold
             elif quality_score > 0.6:
                 confidence_threshold = max(0.70, avg_similarity - 0.10)  # Medium quality
