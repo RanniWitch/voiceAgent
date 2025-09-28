@@ -1,0 +1,55 @@
+{
+  "training_data": {
+    "for real": [
+      {
+        "audio_file": "simple_training_data/for real_20250922_004631.wav",
+        "timestamp": "20250922_004631",
+        "duration": 1.350111961364746,
+        "recognized_text": "Pharrell",
+        "target_word": "for real"
+      },
+      {
+        "audio_file": "simple_training_data/for real_20250922_004644.wav",
+        "timestamp": "20250922_004644",
+        "duration": 1.3500854969024658,
+        "recognized_text": "Pharrell",
+        "target_word": "for real"
+      },
+      {
+        "audio_file": "simple_training_data/for real_20250922_004656.wav",
+        "timestamp": "20250922_004656",
+        "duration": 1.2100141048431396,
+        "recognized_text": "Pharrell",
+        "target_word": "for real"
+      }
+    ],
+    "repository": [
+      {
+        "audio_file": "simple_training_data/repository_20250922_010312.wav",
+        "timestamp": "20250922_010312",
+        "duration": 1.540057897567749,
+        "recognized_text": "Repository",
+        "target_word": "repository"
+      },
+      {
+        "audio_file": "simple_training_data/repository_20250922_010320.wav",
+        "timestamp": "20250922_010320",
+        "duration": 1.6293096542358398,
+        "recognized_text": "Repository",
+        "target_word": "repository"
+      },
+      {
+        "audio_file": "simple_training_data/repository_20250922_010338.wav",
+        "timestamp": "20250922_010338",
+        "duration": 1.6093659400939941,
+        "recognized_text": "Repository",
+        "target_word": "repository"
+      }
+    ]
+  },
+  "session_stats": {
+    "for real": 3,
+    "repository": 3
+  },
+  "last_updated": "2025-09-22T01:03:44.159751"
+}

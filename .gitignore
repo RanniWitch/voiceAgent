@@ -21,7 +21,7 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual environments
+# Virtual Environment
 venv/
 env/
 ENV/
@@ -44,28 +44,29 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Voice Assistant specific
-custom_wake_word_model.pkl
+# Voice Assistant Specific
 *.wav
 *.mp3
-*.m4a
-audio_samples/
-voice_logs/
-temp_audio/
+*.flac
+recordings/*.mp4
+recordings/*.avi
+wake_word_data/*.wav
+simple_training_data/*.wav
 
-# API Keys (if any get added later)
-.env
-config.json
-secrets.json
-
-# Windows
-*.bat
-*.lnk
+# Configuration (keep templates, ignore personal configs)
+ai_config.json
+microphone_config.json
+custom_wake_word_model.pkl
+app_cache.json
 
 # Logs
 *.log
-logs/
+*.log.*
 
-# Cache
-.cache/
-*.cache
+# Temporary files
+*.tmp
+*.temp
+.pytest_cache/
+
+# Kiro IDE
+.kiro/

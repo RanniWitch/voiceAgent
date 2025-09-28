@@ -1,0 +1,26 @@
+{
+  "for real": {
+    "word": "for real",
+    "n_samples": 3,
+    "recognition_variants": {
+      "pharrell": 3
+    },
+    "most_common_result": "pharrell",
+    "avg_duration": 1.3034038543701172,
+    "duration_std": 0.0660365260676526,
+    "consistency_score": 1.0,
+    "created": "2025-09-22T00:47:10.784347"
+  },
+  "repository": {
+    "word": "repository",
+    "n_samples": 3,
+    "recognition_variants": {
+      "repository": 3
+    },
+    "most_common_result": "repository",
+    "avg_duration": 1.592911163965861,
+    "duration_std": 0.03824952078266479,
+    "consistency_score": 1.0,
+    "created": "2025-09-22T01:03:38.759497"
+  }
+}

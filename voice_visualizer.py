@@ -44,6 +44,7 @@ class VoiceVisualizer:
         self.animation_running = True
         self.pulse_intensity = 0.0
         self.breathing_phase = 0.0
+        self.is_paused = False
         
         # Voice assistant
         self.assistant = None
@@ -111,6 +112,14 @@ class VoiceVisualizer:
         )
         self.listen_button.pack(side=tk.LEFT, padx=10)
         
+        self.pause_button = tk.Button(
+            control_frame,
+            text="⏸️ Pause",
+            command=self.pause_listening,
+            **button_style
+        )
+        self.pause_button.pack(side=tk.LEFT, padx=10)
+        
         tk.Button(
             control_frame,
             text="⚙️ Settings",
@@ -163,7 +172,7 @@ class VoiceVisualizer:
             last_wake_word_check = time.time()
             
             while self.animation_running:
-                if self.is_listening:
+                if self.is_listening and not self.is_paused:
                     try:
                         with microphone as source:
                             # Listen for longer phrases for wake word detection
@@ -178,7 +187,6 @@ class VoiceVisualizer:
                             
                             # Process for wake word detection if enough audio
                             if len(audio_data) > 8000:  # Substantial audio for wake word
-                                print(f"Processing audio: {len(audio_data)} samples")
                                 threading.Thread(
                                     target=self.process_audio_for_wake_word,
                                     args=(audio,),
@@ -195,6 +203,63 @@ class VoiceVisualizer:
                     time.sleep(0.1)
         
         threading.Thread(target=audio_thread, daemon=True).start()
+    
+    def listen_for_command(self):
+        """Listen for a command after wake word is detected"""
+        try:
+            recognizer = sr.Recognizer()
+            
+            # Use saved microphone
+            mic_index = None
+            try:
+                with open('microphone_config.json', 'r') as f:
+                    config = json.load(f)
+                    mic_index = config.get('microphone_index')
+            except FileNotFoundError:
+                pass
+            
+            if mic_index is not None:
+                microphone = sr.Microphone(device_index=mic_index)
+            else:
+                microphone = sr.Microphone()
+            
+            # Configure for command listening
+            recognizer.energy_threshold = 300  # More sensitive for commands
+            recognizer.pause_threshold = 1.0   # Wait longer for complete command
+            
+            with microphone as source:
+                recognizer.adjust_for_ambient_noise(source, duration=0.2)
+                
+            print("🎤 Listening for command...")
+            self.audio_queue.put(('status', "Listening for command..."))
+            
+            with microphone as source:
+                # Listen for command with longer timeout
+                audio = recognizer.listen(source, timeout=5, phrase_time_limit=8)
+            
+            # Process command
+            command_text = recognizer.recognize_google(audio)
+            print(f"Command heard: '{command_text}'")
+            
+            if command_text.strip():
+                self.audio_queue.put(('command_detected', command_text))
+                
+                # Process the command
+                response = self.assistant.classify_and_execute_command(command_text)
+                print(f"Response: '{response}'")
+                self.audio_queue.put(('response', response))
+            else:
+                self.audio_queue.put(('response', "I didn't catch that. Please try again."))
+                
+        except sr.WaitTimeoutError:
+            print("⏰ No command heard, going back to wake word listening")
+            self.audio_queue.put(('response', "I'm still here. Say my wake word if you need me."))
+        except sr.UnknownValueError:
+            print("❓ Couldn't understand command")
+            self.audio_queue.put(('response', "I didn't understand that. Please try again."))
+        except Exception as e:
+            print(f"❌ Command listening error: {e}")
+            self.audio_queue.put(('response', "Sorry, there was an error. Please try again."))
     
     def process_audio_for_wake_word(self, audio):
         """Process audio for wake word detection"""
@@ -219,7 +284,7 @@ class VoiceVisualizer:
                 
                 # Extract command after wake word
                 command = self.assistant.extract_command_after_wake_word(text, wake_word)
-                if command:
+                if command and command.strip():
                     print(f"Command: '{command}'")
                     self.audio_queue.put(('command_detected', command))
                     
@@ -228,13 +293,15 @@ class VoiceVisualizer:
                     print(f"Response: '{response}'")
                     self.audio_queue.put(('response', response))
                 else:
-                    # Just wake word, no command
-                    self.audio_queue.put(('response', "I'm listening. What can I help you with?"))
-            else:
-                print(f"❌ No wake word detected in: '{text}'")
+                    # Just wake word, no command - listen for follow-up
+                    print("Wake word detected, listening for command...")
+                    self.audio_queue.put(('awaiting_command', wake_word))
+                    # Start listening for command
+                    threading.Thread(target=self.listen_for_command, daemon=True).start()
                     
         except sr.UnknownValueError:
-            print("❌ Couldn't understand audio")
+            # Don't spam console with "couldn't understand" messages
+            pass
         except sr.RequestError as e:
             print(f"❌ Speech recognition error: {e}")
         except Exception as e:
@@ -257,6 +324,11 @@ class VoiceVisualizer:
                             self.root.after(0, lambda: self.status_label.config(
                                 text=f"Wake word detected: '{data}'"
                             ))
+                        elif event_type == 'awaiting_command':
+                            self.wave_color = "#FFFF00"  # Yellow for awaiting command
+                            self.root.after(0, lambda: self.status_label.config(
+                                text="Listening for your command..."
+                            ))
                         elif event_type == 'command_detected':
                             self.wave_color = "#FFD700"  # Gold for command
                             self.root.after(0, lambda: self.status_label.config(
@@ -264,11 +336,14 @@ class VoiceVisualizer:
                             ))
                         elif event_type == 'response':
                             self.wave_color = "#FF69B4"  # Pink for response
+                            response_text = data[:60] + "..." if len(data) > 60 else data
                             self.root.after(0, lambda: self.status_label.config(
-                                text=f"Response: {data[:50]}..."
+                                text=f"{response_text}"
                             ))
                             # Reset after response
-                            threading.Timer(3.0, self.reset_visualization).start()
+                            threading.Timer(4.0, self.reset_visualization).start()
+                        elif event_type == 'status':
+                            self.root.after(0, lambda: self.status_label.config(text=data))
                             
                 except queue.Empty:
                     pass
@@ -366,10 +441,29 @@ class VoiceVisualizer:
             self.listen_button.config(text="🔇 Stop Listening")
             self.status_label.config(text=f"Listening for '{self.wake_word}'...")
             self.wave_color = "#00BFFF"  # Blue for listening
+            self.is_paused = False
+            self.pause_button.config(text="⏸️ Pause")
         else:
             self.listen_button.config(text="🎤 Start Listening")
             self.status_label.config(text="Click 'Start Listening' to begin")
             self.wave_color = "#666666"  # Gray for idle
+            self.is_paused = False
+    
+    def pause_listening(self):
+        """Pause/resume listening without stopping"""
+        if not self.is_listening:
+            return
+            
+        self.is_paused = not self.is_paused
+        
+        if self.is_paused:
+            self.pause_button.config(text="▶️ Resume")
+            self.status_label.config(text="Paused - Click Resume to continue")
+            self.wave_color = "#FFA500"  # Orange for paused
+        else:
+            self.pause_button.config(text="⏸️ Pause")
+            self.status_label.config(text=f"Listening for '{self.wake_word}'...")
+            self.wave_color = "#00BFFF"  # Blue for listening
     
     def reset_visualization(self):
         """Reset visualization to listening state"""

@@ -303,6 +303,18 @@ class WakeWordAssistant:
             r'tell me a joke|joke please': self.get_random_joke,
             r'random fact|tell me a fact': self.get_random_fact,
             
+            # Spotify Controls (highest priority for music)
+            r'spotify play|spotify pause|play spotify|pause spotify': self.spotify_play_pause,
+            r'spotify next|next song|next track|skip song': self.spotify_next_track,
+            r'spotify previous|previous song|previous track|back song': self.spotify_previous_track,
+            r'spotify volume up|spotify louder': self.spotify_volume_up,
+            r'spotify volume down|spotify quieter': self.spotify_volume_down,
+            
+            # Discord Voice Controls (put BEFORE YouTube to avoid conflicts)
+            r'discord mute|mute discord|mute mic|unmute mic': self.discord_mute,
+            r'discord deafen|deafen discord|deafen|undeafen': self.discord_deafen,
+            r'push to talk|talk|ptt': self.discord_push_to_talk,
+            
             # YouTube/Video Controls
             r'play|pause|play pause|pause play': self.youtube_play_pause,
             r'fullscreen|full screen|go fullscreen': self.youtube_fullscreen,
@@ -312,7 +324,19 @@ class WakeWordAssistant:
             r'skip back 10|go back 10|rewind 10': self.youtube_skip_back_10,
             r'volume up|louder|increase volume': self.youtube_volume_up,
             r'volume down|quieter|decrease volume': self.youtube_volume_down,
-            r'mute|unmute|toggle mute': self.youtube_mute,
+            r'video mute|youtube mute|toggle video mute': self.youtube_mute,
+            
+            # Screen Recording Controls
+            r'save.*(?:last|past).*(\d+).*(?:second|minute)': self.handle_screen_recording,
+            r'record.*(?:last|past).*(\d+).*(?:second|minute)': self.handle_screen_recording,
+            r'clip.*(?:last|past).*(\d+).*(?:second|minute)': self.handle_screen_recording,
+            r'capture.*(?:last|past).*(\d+).*(?:second|minute)': self.handle_screen_recording,
+            r'open recordings|show recordings|recordings folder': self.open_recordings_folder,
+            
+            # Application Launching
+            r'open (.+)': self.launch_application,
+            r'start (.+)': self.launch_application,
+            r'run (.+)': self.launch_application,
             
             # Microphone Controls
             r'list microphones|show microphones': self.list_microphones,
@@ -886,6 +910,213 @@ class WakeWordAssistant:
         ]
         import random
         return random.choice(facts)
+    
+    def discord_mute(self):
+        """Toggle Discord microphone mute"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.1)
+            # Discord default shortcut: Ctrl+Shift+M
+            pyautogui.hotkey('ctrl', 'shift', 'm')
+            return "Discord microphone toggled"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.1)
+                keyboard.press_and_release('ctrl+shift+m')
+                return "Discord microphone toggled"
+            except ImportError:
+                return "Discord control not available. Please install pyautogui: pip install pyautogui"
+    
+    def discord_deafen(self):
+        """Toggle Discord deafen (mute speakers)"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.1)
+            # Discord default shortcut: Ctrl+Shift+D
+            pyautogui.hotkey('ctrl', 'shift', 'd')
+            return "Discord deafen toggled"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.1)
+                keyboard.press_and_release('ctrl+shift+d')
+                return "Discord deafen toggled"
+            except ImportError:
+                return "Discord control not available. Please install pyautogui: pip install pyautogui"
+    
+    def discord_push_to_talk(self):
+        """Activate Discord push-to-talk"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.1)
+            # Discord default push-to-talk: Grave accent (`)
+            pyautogui.press('`')
+            return "Discord push-to-talk activated"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.1)
+                keyboard.press_and_release('`')
+                return "Discord push-to-talk activated"
+            except ImportError:
+                return "Discord control not available. Please install pyautogui: pip install pyautogui"
+    
+    def spotify_play_pause(self):
+        """Toggle Spotify play/pause"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.2)
+            # Use Windows media key - works with any media player including Spotify
+            pyautogui.press('playpause')
+            return "Media play/pause toggled"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.2)
+                # Try Spotify global shortcut as fallback
+                keyboard.press_and_release('ctrl+alt+space')
+                return "Spotify play/pause toggled"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def spotify_next_track(self):
+        """Skip to next track in Spotify"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.2)
+            # Use Windows media key - works with any media player including Spotify
+            pyautogui.press('nexttrack')
+            return "Skipped to next track"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.2)
+                # Try Spotify global shortcut as fallback
+                keyboard.press_and_release('ctrl+alt+right')
+                return "Spotify skipped to next track"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def spotify_previous_track(self):
+        """Skip to previous track in Spotify"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.2)
+            # Use Windows media key - press twice to go to actual previous song
+            # First press restarts current song, second press goes to previous
+            pyautogui.press('prevtrack')
+            time.sleep(0.3)  # Small delay between presses
+            pyautogui.press('prevtrack')
+            return "Skipped to previous track"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.2)
+                # Try Spotify global shortcut as fallback - press twice
+                keyboard.press_and_release('ctrl+alt+left')
+                time.sleep(0.3)
+                keyboard.press_and_release('ctrl+alt+left')
+                return "Spotify skipped to previous track"
+            except ImportError:
+                return "Media control not available. Please install pyautogui: pip install pyautogui"
+    
+    def spotify_volume_up(self):
+        """Increase system volume"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.2)
+            # Use Windows volume key - controls system volume
+            pyautogui.press('volumeup')
+            return "Volume increased"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.2)
+                # Try Spotify global shortcut as fallback
+                keyboard.press_and_release('ctrl+alt+up')
+                return "Spotify volume increased"
+            except ImportError:
+                return "Volume control not available. Please install pyautogui: pip install pyautogui"
+    
+    def spotify_volume_down(self):
+        """Decrease system volume"""
+        try:
+            import pyautogui
+            import time
+            time.sleep(0.2)
+            # Use Windows volume key - controls system volume
+            pyautogui.press('volumedown')
+            return "Volume decreased"
+        except ImportError:
+            try:
+                import keyboard
+                import time
+                time.sleep(0.2)
+                # Try Spotify global shortcut as fallback
+                keyboard.press_and_release('ctrl+alt+down')
+                return "Spotify volume decreased"
+            except ImportError:
+                return "Volume control not available. Please install pyautogui: pip install pyautogui"
+    
+    def handle_screen_recording(self, match=None):
+        """Handle screen recording commands"""
+        try:
+            from screen_recorder import VoiceControlledRecorder
+            if not hasattr(self, 'screen_recorder') or not self.screen_recorder:
+                self.screen_recorder = VoiceControlledRecorder()
+            
+            # This is a placeholder - the actual command will be processed by the recorder
+            return "Screen recording feature is ready. Use commands like 'save last 30 seconds' or 'record past 2 minutes'."
+        except Exception as e:
+            return f"Screen recording not available: {e}"
+    
+    def open_recordings_folder(self):
+        """Open the recordings folder"""
+        try:
+            import subprocess
+            import os
+            recordings_path = os.path.abspath("recordings")
+            subprocess.Popen(f'explorer "{recordings_path}"')
+            return f"Opening recordings folder: {recordings_path}"
+        except Exception as e:
+            return f"Could not open recordings folder: {e}"
+    
+    def launch_application(self, match):
+        """Launch an application by name"""
+        try:
+            from app_launcher import ApplicationLauncher
+            
+            if not hasattr(self, 'app_launcher') or not self.app_launcher:
+                self.app_launcher = ApplicationLauncher()
+            
+            app_name = match.group(1).strip() if match else ""
+            if not app_name:
+                return "Please specify an application name"
+            
+            # Skip common website commands (handled elsewhere)
+            if any(site in app_name.lower() for site in ['youtube', 'google', 'facebook', 'gmail', 'netflix']):
+                return None  # Let other handlers process this
+            
+            result = self.app_launcher.launch_app(app_name)
+            return result
+            
+        except Exception as e:
+            return f"Could not launch application: {e}"
     
     def list_microphones(self):
         """List available microphones"""
