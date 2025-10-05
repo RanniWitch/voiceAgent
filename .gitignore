@@ -70,3 +70,4 @@ app_cache.json
 
 # Kiro IDE
 .kiro/
+.env
